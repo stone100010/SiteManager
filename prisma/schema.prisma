@@ -1,0 +1,64 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum SiteStatus {
+  online
+  offline
+  unknown
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  icon      String   @default("folder")
+  color     String   @default("#6366f1")
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  sites     Site[]
+
+  @@map("categories")
+}
+
+model Site {
+  id            String     @id @default(cuid())
+  name          String
+  url           String
+  description   String?
+  iconUrl       String?    @map("icon_url")
+  categoryId    String     @map("category_id")
+  category      Category   @relation(fields: [categoryId], references: [id])
+  status        SiteStatus @default(unknown)
+  sortOrder     Int        @default(0) @map("sort_order")
+  clickCount    Int        @default(0) @map("click_count")
+  lastCheckedAt DateTime?  @map("last_checked_at")
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+  tags          SiteTag[]
+
+  @@map("sites")
+}
+
+model Tag {
+  id    String    @id @default(cuid())
+  name  String    @unique
+  sites SiteTag[]
+
+  @@map("tags")
+}
+
+model SiteTag {
+  siteId String @map("site_id")
+  tagId  String @map("tag_id")
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([siteId, tagId])
+  @@map("site_tags")
+}
