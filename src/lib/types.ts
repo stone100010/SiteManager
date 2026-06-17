@@ -19,6 +19,7 @@ export interface Site {
   url: string;
   description: string | null;
   iconUrl: string | null;
+  ogImage: string | null;
   categoryId: string;
   category?: Category;
   status: SiteStatus;

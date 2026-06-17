@@ -3,7 +3,6 @@
 import { useAppStore } from "@/stores/site-store";
 import { useCategories } from "@/hooks/use-sites";
 import { LayoutGrid } from "lucide-react";
-import { useEffect } from "react";
 
 const ICON_MAP: Record<string, React.ReactNode> = {
   code: <span>⌨</span>,
@@ -16,12 +15,8 @@ const ICON_MAP: Record<string, React.ReactNode> = {
 };
 
 export default function CategoryFilter() {
-  const { selectedCategory, setSelectedCategory, setCategories } = useAppStore();
+  const { selectedCategory, setSelectedCategory } = useAppStore();
   const { categories } = useCategories();
-
-  useEffect(() => {
-    setCategories(categories);
-  }, [categories, setCategories]);
 
   return (
     <div className="sticky top-16 z-20 border-b border-slate-200 bg-white/60 backdrop-blur-md dark:border-slate-700 dark:bg-slate-900/60">

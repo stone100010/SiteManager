@@ -1,12 +1,20 @@
 import useSWR from "swr";
 import type { Site, Category } from "@/lib/types";
+import { useState, useEffect } from "react";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 export function useSites(category?: string, search?: string) {
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const params = new URLSearchParams();
   if (category && category !== "all") params.set("category", category);
-  if (search) params.set("search", search);
+  if (debouncedSearch) params.set("search", debouncedSearch);
 
   const qs = params.toString();
   const url = `/api/sites${qs ? `?${qs}` : ""}`;

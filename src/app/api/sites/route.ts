@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { name, url, description, categoryId, tags } = body;
+  const { name, url, description, categoryId, tags, ogImage } = body;
 
   if (!name || !url || !categoryId) {
     return NextResponse.json(
@@ -63,6 +63,7 @@ export async function POST(request: NextRequest) {
       name,
       url,
       description: description || null,
+      ogImage: ogImage || null,
       categoryId,
       tags: {
         create: tagConnections.map((t) => ({ tagId: t.tagId })),

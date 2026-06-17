@@ -24,7 +24,7 @@ export async function PUT(
 ) {
   const { id } = await params;
   const body = await request.json();
-  const { name, url, description, categoryId, tags, sortOrder } = body;
+  const { name, url, description, categoryId, tags, sortOrder, ogImage } = body;
 
   // Process tags if provided
   if (tags && Array.isArray(tags)) {
@@ -49,6 +49,7 @@ export async function PUT(
   if (url !== undefined) data.url = url;
   if (description !== undefined) data.description = description || null;
   if (categoryId !== undefined) data.categoryId = categoryId;
+  if (ogImage !== undefined) data.ogImage = ogImage || null;
   if (sortOrder !== undefined) data.sortOrder = sortOrder;
 
   const site = await prisma.site.update({

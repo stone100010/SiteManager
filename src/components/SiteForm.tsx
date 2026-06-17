@@ -3,11 +3,11 @@
 import { useState, useEffect } from "react";
 import { useAppStore } from "@/stores/site-store";
 import { useCategories } from "@/hooks/use-sites";
-import { X } from "lucide-react";
+import { X, Download, Loader2 } from "lucide-react";
 
 export default function SiteForm() {
   const { isFormOpen, editingSite, closeForm } = useAppStore();
-  const { categories, mutate: mutateCats } = useCategories();
+  const { categories } = useCategories();
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const [description, setDescription] = useState("");
@@ -15,6 +15,8 @@ export default function SiteForm() {
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [ogImage, setOgImage] = useState<string | null>(null);
 
   useEffect(() => {
     if (editingSite) {
@@ -44,12 +46,32 @@ export default function SiteForm() {
 
   const removeTag = (i: number) => setTags(tags.filter((_, idx) => idx !== i));
 
+  const handleAutoImport = async () => {
+    if (!url) return;
+    setImporting(true);
+    try {
+      const res = await fetch("/api/fetch-meta", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        if (data.title && !name) setName(data.title);
+        if (data.description && !description) setDescription(data.description);
+        if (data.ogImage) setOgImage(data.ogImage);
+      }
+    } finally {
+      setImporting(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !url || !categoryId) return;
     setSaving(true);
 
-    const body = { name, url, description: description || null, categoryId, tags };
+    const body = { name, url, description: description || null, categoryId, tags, ogImage };
 
     try {
       if (editingSite) {
@@ -85,15 +107,24 @@ export default function SiteForm() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* URL + 自动导入 */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">站点名称 *</label>
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="例如：GitHub"
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100" required />
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">站点地址 *</label>
+            <div className="flex gap-2">
+              <input type="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://github.com"
+                className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100" required />
+              <button type="button" onClick={handleAutoImport} disabled={importing || !url}
+                className="flex shrink-0 items-center gap-1 rounded-lg border border-indigo-300 bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-600 transition-colors hover:bg-indigo-100 disabled:opacity-40 dark:border-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400 dark:hover:bg-indigo-900/50"
+                title="自动抓取网站标题和描述">
+                {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                <span className="hidden sm:inline">导入</span>
+              </button>
+            </div>
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">站点地址 *</label>
-            <input type="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://github.com"
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">站点名称 *</label>
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="例如：GitHub"
               className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100" required />
           </div>
 
